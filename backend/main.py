@@ -36,28 +36,32 @@ html = """
     </body>
 </html>
 """
+
 #stores all active websocket connections
 class ConnectionManager: 
     def __init__(self): 
         self.active_connections = {}
-
+        self.documents = {}
     async def connect(self, websocket:WebSocket, documentId:int):
         await websocket.accept()
         if documentId not in self.active_connections:
             self.active_connections[documentId] = []
-
+            self.documents[documentId] = []
         self.active_connections[documentId].append(websocket)
-
+        if self.documents[documentId]:
+            for text in self.documents[documentId]:
+                await websocket.send_text(text)
     def disconnect(self, websocket:WebSocket, documentId:int): 
         try: 
             self.active_connections[documentId].remove(websocket)
         except KeyError: 
             print(f"{documentId} could not be found")
     
-    async def broadcast(self, message: str, documentId: int): 
+    async def broadcast(self, message: str, documentId: int, sender: WebSocket): 
         for connection in self.active_connections[documentId]:
-            await connection.send_text(message)
-
+            if connection != sender: 
+                await connection.send_text(message)
+        
 
 manager = ConnectionManager()
 @app.get("/")
@@ -70,6 +74,7 @@ async def websocket_endpoint(websocket: WebSocket, document_id: int):
     while True: 
         try:
             data = await websocket.receive_text()
-            await manager.broadcast(f"message {data}", document_id)
+            manager.documents[document_id].append(data)
+            await manager.broadcast(manager.documents[document_id][-1], document_id, websocket)
         except WebSocketDisconnect: 
             manager.disconnect(websocket, document_id)
