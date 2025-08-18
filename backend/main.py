@@ -78,10 +78,13 @@ async def get():
 @app.websocket("/ws/{document_id}")
 async def websocket_endpoint(websocket: WebSocket, document_id: int): 
     await manager.connect(websocket, document_id)
-    while True: 
-        try:
+
+    try:
+        while True:
             data = await websocket.receive_text()
+            print(f"received data {data}")
             manager.documents[document_id].append(data)
             await manager.broadcast(manager.documents[document_id][-1], document_id, websocket)
-        except WebSocketDisconnect: 
-            manager.disconnect(websocket, document_id)
+    except WebSocketDisconnect: 
+        manager.disconnect(websocket, document_id)
+    
