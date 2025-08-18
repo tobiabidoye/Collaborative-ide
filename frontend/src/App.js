@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from "react-dom/client";
-import MonacoEditor from 'react-monaco-editor';
+import Editor from '@monaco-editor/react';
 
 class App extends React.Component {
   constructor(props) {
@@ -22,10 +22,10 @@ class App extends React.Component {
       selectOnLineNumbers: true
     };
     return (
-      <MonacoEditor
-        width="800"
-        height="600"
-        language="javascript"
+      <Editor
+        width="100%"
+        height="100vh"
+        language="python"
         theme="vs-dark"
         value={code}
         options={options}
