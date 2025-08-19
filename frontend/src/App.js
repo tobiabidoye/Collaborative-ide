@@ -53,6 +53,8 @@ class App extends React.Component {
         });
         this.websocket.addEventListener("message", (event) => { 
             console.log("message from server", event.data);
+            this.setState({code : event.data})
+
         });
 
         this.websocket.addEventListener("close", (event) => { 

@@ -57,7 +57,10 @@ class ConnectionManager:
         self.active_connections[documentId].append(websocket)
         if self.documents[documentId]:
             for text in self.documents[documentId]:
-                await websocket.send_text(text)
+                try: 
+                    await websocket.send_text(text)
+                except: 
+                    break
     def disconnect(self, websocket:WebSocket, documentId:int): 
         try: 
             self.active_connections[documentId].remove(websocket)
@@ -65,10 +68,18 @@ class ConnectionManager:
             print(f"{documentId} could not be found")
     
     async def broadcast(self, message: str, documentId: int, sender: WebSocket): 
+        if documentId not in self.active_connections: 
+            return 
+        dead_connections = []
         for connection in self.active_connections[documentId]:
-            if connection != sender: 
-                await connection.send_text(message)
-        
+            try: 
+                if connection != sender: 
+                    await connection.send_text(message)
+            except: 
+                dead_connections.append(connection)
+
+        for dead_conn in dead_connections: 
+            self.active_connections[documentId].remove(dead_conn)
 
 manager = ConnectionManager()
 @app.get("/")
