@@ -61,10 +61,15 @@ class App extends React.Component {
     }
     onLanguageChange(event){
         const newLanguage = event.target.value; 
+        const newCode = this.getOrDefault(newLanguage);
         this.setState({
             selectedLanguage: newLanguage,
-            code: this.getOrDefault(newLanguage)
+            code: newCode
         });
+
+        if(this.websocket && this.websocket.readyState === WebSocket.OPEN){
+            this.websocket.send(newCode)
+        }
     }
 
     getOrDefault(language){
